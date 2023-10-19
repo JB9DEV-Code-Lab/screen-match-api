@@ -1,5 +1,8 @@
 package dev.jb9.screenmatchapi;
 
+import dev.jb9.screenmatchapi.dto.SeriesDTO;
+import dev.jb9.screenmatchapi.exception.JsonSerializerException;
+import dev.jb9.screenmatchapi.service.JsonSerializerService;
 import dev.jb9.screenmatchapi.service.RequestAPIService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -19,12 +22,20 @@ public class ScreenMatchApiApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		System.out.println("Just following the course instructions, to implement a command line runner here");
 
-		String titleName = URLEncoder.encode("furious fast", StandardCharsets.UTF_8);
+		String titleName = URLEncoder.encode("the big bang theory", StandardCharsets.UTF_8);
 		RequestAPIService requestAPIService = new RequestAPIService();
-		String furiousFast = requestAPIService.getData(
+		String titleData = requestAPIService.getData(
 				"https://www.omdbapi.com?t=" + titleName + "&apikey=" + System.getenv("OMDB_API_KEY")
 		);
 
-		System.out.println(furiousFast);
+		try {
+		JsonSerializerService jsonSerializerService = new JsonSerializerService();
+		SeriesDTO json = jsonSerializerService.deserialize(titleData, SeriesDTO.class);
+
+		System.out.println("raw data from OMDB API: " + titleData);
+		System.out.println("deserialized data from service: " + json);
+		} catch (JsonSerializerException exception) {
+			System.out.printf("Couldn't deserialize due to %s", exception.getMessage());
+		}
 	}
 }
