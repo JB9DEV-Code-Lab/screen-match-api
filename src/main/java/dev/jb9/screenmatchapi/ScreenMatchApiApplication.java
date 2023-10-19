@@ -1,9 +1,9 @@
 package dev.jb9.screenmatchapi;
 
-import dev.jb9.screenmatchapi.dto.SeriesDTO;
-import dev.jb9.screenmatchapi.exception.JsonSerializerException;
-import dev.jb9.screenmatchapi.service.JsonSerializerService;
-import dev.jb9.screenmatchapi.service.RequestAPIService;
+import dev.jb9.screenmatchapi.dtos.SeriesDTO;
+import dev.jb9.screenmatchapi.exceptions.JsonSerializerException;
+import dev.jb9.screenmatchapi.services.JsonSerializerService;
+import dev.jb9.screenmatchapi.services.RequestAPIService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

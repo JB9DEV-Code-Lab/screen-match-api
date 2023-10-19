@@ -1,4 +1,4 @@
-package dev.jb9.screenmatchapi.dto;
+package dev.jb9.screenmatchapi.dtos;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

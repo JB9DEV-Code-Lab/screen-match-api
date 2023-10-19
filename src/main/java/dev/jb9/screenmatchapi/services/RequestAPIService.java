@@ -1,4 +1,4 @@
-package dev.jb9.screenmatchapi.service;
+package dev.jb9.screenmatchapi.services;
 
 import java.io.IOException;
 import java.net.URI;
