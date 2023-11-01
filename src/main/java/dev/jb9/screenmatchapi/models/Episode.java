@@ -7,8 +7,8 @@ import java.time.LocalDate;
 
 public class Episode {
     private int seasonNumber;
-    private String title;
-    private String episodeNumber;
+    private final String title;
+    private final String episodeNumber;
     private LocalDate releasedAt;
     private double imdbRating;
 
@@ -49,10 +49,6 @@ public class Episode {
 
     public LocalDate getReleasedAt() {
         return releasedAt;
-    }
-
-    public double getImdbRating() {
-        return imdbRating;
     }
 
     @Override
