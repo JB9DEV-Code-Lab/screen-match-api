@@ -8,13 +8,17 @@ import java.time.LocalDate;
 public class Episode {
     private int seasonNumber;
     private final String title;
-    private final String episodeNumber;
+    private int episodeNumber;
     private LocalDate releasedAt;
     private double imdbRating;
 
     public Episode(String seasonNumber, EpisodeDTO episodeDTO) {
         this.title = episodeDTO.title();
-        this.episodeNumber = episodeDTO.episodeNumber();
+        try {
+            this.episodeNumber = Integer.parseInt(episodeDTO.episodeNumber());
+        } catch (NumberFormatException exception) {
+            this.episodeNumber = 1;
+        }
 
         try {
             this.seasonNumber = Integer.parseInt(seasonNumber);
@@ -43,12 +47,16 @@ public class Episode {
         return title;
     }
 
-    public String getEpisodeNumber() {
+    public int getEpisodeNumber() {
         return episodeNumber;
     }
 
     public LocalDate getReleasedAt() {
         return releasedAt;
+    }
+
+    public double getImdbRating() {
+        return imdbRating;
     }
 
     @Override
