@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     private final RequestAPIService requestAPI = new RequestAPIService();
@@ -109,6 +110,7 @@ public class Main {
     private void printEpisodesFromYear(int year) {
         LocalDate dateToFilter = LocalDate.of(year, 1, 1);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        System.out.println("These are the episodes from year " + year);
         episodes.stream()
                 .filter(episode -> episode.getReleasedAt() != null && episode.getReleasedAt().isAfter(dateToFilter))
                 .forEach(episode -> System.out.println(
@@ -118,5 +120,28 @@ public class Main {
                                         + " released at: " + episode.getReleasedAt().format(dateTimeFormatter)
                         )
                 );
+
+        printEpisodesStatistics();
+    }
+
+    private void printEpisodesStatistics() {
+        System.out.println("#################### Here are some statistics ####################");
+        Map<Integer, Double> ratingBySeason = episodes.stream()
+                .filter(epsisode -> epsisode.getImdbRating() > 0)
+                .collect(Collectors.groupingBy(
+                        Episode::getSeasonNumber, Collectors.averagingDouble(Episode::getImdbRating)));
+
+        System.out.println("Rating by season:");
+        System.out.println(ratingBySeason);
+
+        DoubleSummaryStatistics episodesStatistics = episodes.stream()
+                .filter(episode -> episode.getImdbRating() > 0)
+                .collect(Collectors.summarizingDouble(Episode::getImdbRating));
+
+        System.out.println("Episode rating statistics");
+        System.out.println("Episode count: " + episodesStatistics.getCount());
+        System.out.println("Best rated episode: " + episodesStatistics.getMax());
+        System.out.println("Worst rated episode: " + episodesStatistics.getMin());
+        System.out.println("Episodes rating average: " + episodesStatistics.getAverage());
     }
 }
