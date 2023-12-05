@@ -3,46 +3,34 @@ package dev.jb9.screenmatchapi.main;
 import dev.jb9.screenmatchapi.dtos.SeasonDTO;
 import dev.jb9.screenmatchapi.dtos.SeriesDTO;
 import dev.jb9.screenmatchapi.models.Episode;
-import dev.jb9.screenmatchapi.services.JsonSerializerService;
-import dev.jb9.screenmatchapi.services.RequestAPIService;
+import dev.jb9.screenmatchapi.services.OmdbApiService;
+import dev.jb9.screenmatchapi.utils.Reader;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Main {
-    private final RequestAPIService requestAPI = new RequestAPIService();
-    private final JsonSerializerService jsonSerializer = new JsonSerializerService();
-    private final Scanner reader = new Scanner(System.in);
-    private final StringBuilder endpoint = new StringBuilder(
-            "https://www.omdbapi.com?apikey=" + System.getenv("OMDB_API_KEY"));
+    private final OmdbApiService omdbApiService = new OmdbApiService();
+    private final Reader reader = new Reader();
     private List<Episode> episodes;
 
     public void execute() {
-        System.out.println("""
-        Welcome to Screen Match API!
-        Here you can find the series you want to watch in a easy way. So, what series do you want to watch?
-        """);
+        printWelcomeMessage();
 
-        String seriesName = reader.nextLine();
-        endpoint.append("&t=").append(URLEncoder.encode(seriesName, StandardCharsets.UTF_8));
-        String seriesData = requestAPI.getData(endpoint.toString());
-        SeriesDTO seriesDTO = jsonSerializer.deserialize(seriesData, SeriesDTO.class);
+        String seriesName = reader.ask("What series do you want to watch?");
+        omdbApiService.setSeriesName(seriesName);
+        SeriesDTO seriesDTO = omdbApiService.fetchSeries();
 
-        System.out.printf("""
-        This series has a total of %s seasons. Do you want to list episodes from all of them? [y / n]
-        """, seriesDTO.totalSeasons());
-        String printAllSeasonEpisodes = reader.nextLine();
+        boolean shouldPrintAllEpisodes = reader.askForBoolean(
+                "This series has a total of %s seasons. Do you want to list episodes from all of them?"
+                        .formatted(seriesDTO.totalSeasons()));
 
-        if (printAllSeasonEpisodes.equalsIgnoreCase("y") || printAllSeasonEpisodes.equalsIgnoreCase("yes")) {
+        if (shouldPrintAllEpisodes) {
             setEpisodesFromAllSeasons(seriesDTO);
         } else {
-            System.out.println("Which season do you want to list the episodes?");
-            int chosenSeason = reader.nextInt();
-            reader.nextLine();
+            int chosenSeason = reader.askForInteger("Which season do you want to list the episodes?");
             setEpisodesFromSpecificSeason(chosenSeason);
         }
 
@@ -66,11 +54,15 @@ public class Main {
 
         System.out.println("There are episodes for these years:");
         episodeAvailableYears.stream().sorted().forEach(episode -> System.out.print(episode + " "));
-        System.out.println("\nFrom which year do you want to list the episodes?");
-        int yearToFilter = reader.nextInt();
-        reader.nextLine();
-
+        int yearToFilter = reader.askForInteger("\nFrom which year do you want to list the episodes?");
         printEpisodesFromYear(yearToFilter);
+    }
+
+    private void printWelcomeMessage() {
+        System.out.println("""
+        Welcome to Screen Match API!
+        Here you can find the series you want to watch in a easy way.
+        """);
     }
 
     private void setEpisodesFromAllSeasons(SeriesDTO seriesDTO) {
@@ -93,8 +85,8 @@ public class Main {
     }
 
     private SeasonDTO fetchSeason(int seasonNumber) {
-        String seasonData = requestAPI.getData(endpoint + "&season=" + seasonNumber);
-        return jsonSerializer.deserialize(seasonData, SeasonDTO.class);
+        omdbApiService.setSeasonNumber(seasonNumber);
+        return omdbApiService.fetchSeason();
     }
 
     private Set<Integer> getEpisodeAvailableYears() {
