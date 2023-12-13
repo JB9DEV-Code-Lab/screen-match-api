@@ -1,7 +1,7 @@
 package dev.jb9.screenmatchapi.services;
 
 import dev.jb9.screenmatchapi.dtos.SeasonDTO;
-import dev.jb9.screenmatchapi.dtos.SeriesDTO;
+import dev.jb9.screenmatchapi.dtos.SerieDTO;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -24,11 +24,11 @@ public class OmdbApiService extends RequestAPIService {
     // endregion setters
 
     // region public methods
-    public SeriesDTO fetchSeries() {
+    public SerieDTO fetchSeries() {
         String endpoint = getSeriesPath();
         String seriesData = getData(endpoint);
 
-        return jsonSerializer.deserialize(seriesData, SeriesDTO.class);
+        return jsonSerializer.deserialize(seriesData, SerieDTO.class);
     }
 
     public SeasonDTO fetchSeason() {
