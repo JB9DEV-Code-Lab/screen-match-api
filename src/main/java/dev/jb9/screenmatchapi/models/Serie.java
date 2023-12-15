@@ -2,7 +2,11 @@ package dev.jb9.screenmatchapi.models;
 
 import dev.jb9.screenmatchapi.dtos.SerieDTO;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Serie {
+    // region fields
     private String title;
     private int totalSeasons;
     private double imdbRating;
@@ -10,7 +14,11 @@ public class Serie {
     private String actors;
     private String poster;
     private String synopsis;
+    private final List<Season> SEASON_LIST = new ArrayList<>();
+    private int totalEpisodes;
+    // endregion fields
 
+    // region contructors
     public Serie() {}
     public Serie(SerieDTO serieDTO) {
         this.title = serieDTO.title();
@@ -18,6 +26,7 @@ public class Serie {
         this.actors = serieDTO.actors();
         this.poster = serieDTO.poster();
         this.synopsis = serieDTO.synopsis();
+        this.totalEpisodes = 0;
 
         try {
             this.totalSeasons = Integer.parseInt(serieDTO.totalSeasons());
@@ -31,6 +40,7 @@ public class Serie {
             this.imdbRating = 0.0;
         }
     }
+    // endregion constructors
 
     // region getters
     public String getTitle() {
@@ -60,6 +70,15 @@ public class Serie {
     public String getSynopsis() {
         return synopsis;
     }
+
+    public List<Season> getSeasonList() {
+        return SEASON_LIST;
+    }
+
+    public int getTotalEpisodes() {
+        return totalEpisodes;
+    }
+
     // endregion getters
 
     // region setters
@@ -90,5 +109,16 @@ public class Serie {
     public void setSynopsis(String synopsis) {
         this.synopsis = synopsis;
     }
+
+    public void setTotalEpisodes(int totalEpisodes) {
+        this.totalEpisodes = totalEpisodes;
+    }
     // endregion setters
+
+    // region public methods
+    public void addSeason(Season season) {
+        this.SEASON_LIST.add(season);
+        totalEpisodes = season.getEpisodeList().size();
+    }
+    // endregion public methods
 }
