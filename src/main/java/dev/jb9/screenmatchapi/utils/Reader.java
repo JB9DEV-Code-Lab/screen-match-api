@@ -1,5 +1,6 @@
 package dev.jb9.screenmatchapi.utils;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Reader {
@@ -22,7 +23,19 @@ public class Reader {
     }
 
     public int askForInteger(String question) {
-        askQuestion(question, "type an integer number");
+        return askForInteger(question, new int[0]);
+    }
+
+    public int askForInteger(String question, int[] validOptions) {
+        int validOptionsCount = validOptions.length;
+        String tipComplement = switch(validOptionsCount) {
+            case 0 -> "";
+            case 1 -> "from 0 to %d".formatted(validOptions[0]);
+            case 2 -> "from %d to %d".formatted(validOptions[0], validOptions[1]);
+            default -> Arrays.toString(validOptions);
+        };
+
+        askQuestion(question, "type an integer number %s".formatted(tipComplement));
         int answer = SCANNER.nextInt();
         SCANNER.nextLine();
 
