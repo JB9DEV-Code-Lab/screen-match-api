@@ -6,11 +6,16 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 
 public class Episode {
+    // region fields
     private int seasonNumber;
-    private final String title;
+    private String title;
     private int episodeNumber;
     private LocalDate releasedAt;
     private double imdbRating;
+    // endregion fields
+
+    // region constructors
+    public Episode() {}
 
     public Episode(String seasonNumber, EpisodeDTO episodeDTO) {
         this.title = episodeDTO.title();
@@ -38,7 +43,9 @@ public class Episode {
             this.imdbRating = 0.0;
         }
     }
+    // endregion constructors
 
+    // region getters
     public int getSeasonNumber() {
         return seasonNumber;
     }
@@ -58,7 +65,9 @@ public class Episode {
     public double getImdbRating() {
         return imdbRating;
     }
+    // endregion getters
 
+    // region overridings
     @Override
     public String toString() {
         return "seasonNumber=" + seasonNumber +
@@ -67,4 +76,5 @@ public class Episode {
                 ", releasedAt=" + releasedAt +
                 ", imdbRating=" + imdbRating;
     }
+    // endregion overridings
 }
