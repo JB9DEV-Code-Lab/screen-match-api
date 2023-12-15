@@ -3,113 +3,77 @@ package dev.jb9.screenmatchapi.main;
 import dev.jb9.screenmatchapi.dtos.SeasonDTO;
 import dev.jb9.screenmatchapi.dtos.SerieDTO;
 import dev.jb9.screenmatchapi.models.Episode;
+import dev.jb9.screenmatchapi.models.Season;
+import dev.jb9.screenmatchapi.models.Serie;
 import dev.jb9.screenmatchapi.services.OmdbApiService;
 import dev.jb9.screenmatchapi.utils.Reader;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.DoubleSummaryStatistics;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Main {
     private final OmdbApiService OMDB_API_SERVICE = new OmdbApiService();
     private final Reader READER = new Reader();
-    private final List<SeasonDTO> SEASONS = new ArrayList<>();
-    private List<Episode> episodes;
+    private final List<Serie> series = new ArrayList<>();
+    private Serie serie;
 
     public void execute() {
         printWelcomeMessage();
-        boolean wantToWatchSomething = true;
+        boolean wantToWatchSomething;
         do {
             String seriesName = READER.ask("What series do you want to watch?");
             OMDB_API_SERVICE.setSeriesName(seriesName);
             SerieDTO serieDTO = OMDB_API_SERVICE.fetchSeries();
+            serie = new Serie(serieDTO);
+            series.add(serie);
 
-            boolean shouldPrintAllEpisodes = READER.askForBoolean(
+            boolean shouldPrintAllSeasons = READER.askForBoolean(
                     "This series has a total of %s seasons. Do you want to list episodes from all of them?"
                             .formatted(serieDTO.totalSeasons()));
 
-            if (shouldPrintAllEpisodes) {
-                setEpisodesFromAllSeasons(serieDTO);
+            if (shouldPrintAllSeasons) {
+                setAllSeasons(serie.getTotalSeasons());
             } else {
-                int chosenSeason = READER.askForInteger("Which season do you want to list the episodes?");
-                setEpisodesFromSpecificSeason(chosenSeason);
+                int[] validOptions = {1, serie.getTotalSeasons()};
+                setSpecificSeason(
+                        READER.askForInteger("Which season do you want to list the episodes?", validOptions)
+                );
             }
 
-            if (episodes.isEmpty()) {
-                /* TODO: may be changed to look into series instead of episodes */
-                System.out.println("Couldn't find any episode for " + serieDTO.title());
-                return;
-            }
-
-            /*
-            * TODO: All of this episodeAvailableYears related stuff may be removed, since it won't make sense, when
-            *  looping though series
-            * */
-            Set<Integer> episodeAvailableYears = getEpisodeAvailableYears();
-            if (episodeAvailableYears.isEmpty()) {
-                System.out.println("These are all episodes found");
-                episodes.forEach(System.out::println);
-                return;
-            }
-
-            if (episodeAvailableYears.size() == 1) {
-                List<Integer> years = new ArrayList<>(episodeAvailableYears);
-                printEpisodesFromYear(years.get(0));
+            if (serie.getTotalEpisodes() == 0) {
+                System.out.println("Couldn't find any episode for " + serie.getTitle());
                 return;
             }
 
             wantToWatchSomething = READER.askForBoolean("Do you want to choose another series to watch?");
-
-            /*
-            * TODO: This code down may be removed, since the seasons are related with the years, so if the user chose
-            *  the season before we'll have only one to print when loop through it, other wise we'll have many
-            * */
-            System.out.println("There are episodes for these years:");
-            episodeAvailableYears.stream().sorted().forEach(episode -> System.out.print(episode + " "));
-            int yearToFilter = READER.askForInteger("\nFrom which year do you want to list the episodes?");
-            printEpisodesFromYear(yearToFilter);
         } while(wantToWatchSomething);
 
-        /*
-         TODO: Should loop through series and call "printEpisodesFromYear" passing the yearToFilter and the episode from
-          the iteration
-         */
+        series.forEach(listedSerie -> {
+            printSeparator(listedSerie.getTitle().toUpperCase() + " DETAILS:", " ");
+            listedSerie.getSeasonList().forEach(this::printEpisodesFromASeason);
+        });
     }
 
     private void printWelcomeMessage() {
-        System.out.println("""
+        printSeparator("", "#");
+        System.out.print("""
         Welcome to Screen Match API!
-        Here you can find the series you want to watch in a easy way.
-        """);
+        Here you can find the series you want to watch in a easy way.""");
+        printSeparator("", "#");
     }
 
-    private void setEpisodesFromAllSeasons(SerieDTO serieDTO) {
-        /*
-            TODO: This may be changed to fetchAllSeasons and it should be all stored in one series model and then added
-            to a series list
-        */
-        for(int seasonNumber = 1; seasonNumber <= Integer.parseInt(serieDTO.totalSeasons()); seasonNumber++) {
-            SeasonDTO seasonDTO = fetchSeason(seasonNumber);
-            SEASONS.add(seasonDTO);
+    private void setAllSeasons(int totalSeasons) {
+        for(int seasonNumber = 1; seasonNumber <= totalSeasons; seasonNumber++) {
+            setSpecificSeason(seasonNumber);
         }
-
-        episodes = SEASONS.stream()
-                .flatMap(season -> season.episodes().stream()
-                        .map(episode -> new Episode(season.seasonNumber(), episode)))
-                .toList();
     }
 
-    private void setEpisodesFromSpecificSeason(Integer chosenSeason) {
-        /*
-        * TODO: This will probably be removed, since at the end the loop will parse through series, which will have
-        *  a relation with seasons which will have a relation with episodes, to print it all
-        * */
-        SeasonDTO season = fetchSeason(chosenSeason);
-        SEASONS.add(season);
-        episodes = season.episodes().stream()
-                .map(episodeDTO -> new Episode(chosenSeason.toString(), episodeDTO))
-                .toList();
+    private void setSpecificSeason(Integer chosenSeason) {
+        serie.addSeason(new Season(fetchSeason(chosenSeason)));
     }
 
     private SeasonDTO fetchSeason(int seasonNumber) {
@@ -117,46 +81,28 @@ public class Main {
         return OMDB_API_SERVICE.fetchSeason();
     }
 
-    private Set<Integer> getEpisodeAvailableYears() {
-        /*
-        * TODO: Here it should probably receive "List<Episode> episodes" as a parameter instead of using episodes field
-        *  */
-        Set<Integer> episodeAvailableYears = new HashSet<>();
-
-        episodes.stream()
-                .filter(episode -> episode.getReleasedAt() != null)
-                .forEach(episode -> episodeAvailableYears.add(episode.getReleasedAt().getYear()));
-
-        return episodeAvailableYears;
-    }
-
-    private void printEpisodesFromYear(int year) {
-        /*
-        * TODO: Here episodes should be received as a parameter, since series will be stored in a list, from where it'll
-        *  be used to print all at the end
-        * */
-        LocalDate dateToFilter = LocalDate.of(year, 1, 1);
+    private void printEpisodesFromASeason(Season season) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        System.out.println("These are the episodes from year " + year);
-        episodes.stream()
-                .filter(episode -> episode.getReleasedAt() != null && episode.getReleasedAt().isAfter(dateToFilter))
-                .forEach(episode -> System.out.println(
-                                "Season: " + episode.getSeasonNumber()
-                                        + " episode: " + episode.getEpisodeNumber()
-                                        + " title: " + episode.getTitle()
-                                        + " released at: " + episode.getReleasedAt().format(dateTimeFormatter)
-                        )
+        printSeparator("Episodes:", "#");
+        season.getEpisodeList().forEach(episode -> {
+                    String releasedAt = "";
+                    if (episode.getReleasedAt() != null) {
+                        releasedAt = " released at: %s".formatted(episode.getReleasedAt().format(dateTimeFormatter));
+                    }
+                    System.out.println(
+                            "Season: " + episode.getSeasonNumber()
+                                    + " episode: " + episode.getEpisodeNumber()
+                                    + " title: " + episode.getTitle()
+                                    + releasedAt
+                    );
+                }
                 );
 
-        printEpisodesStatistics();
+        printEpisodesStatistics(season.getEpisodeList());
     }
 
-    private void printEpisodesStatistics() {
-        /*
-         * TODO: Here episodes should be received as a parameter, since series will be stored in a list, from where it'll
-         *  be used to print all at the end
-         * */
-        System.out.println("#################### Here are some statistics ####################");
+    private void printEpisodesStatistics(List<Episode> episodes) {
+        printSeparator("Here are some statistics:", "#");
         Map<Integer, Double> ratingBySeason = episodes.stream()
                 .filter(epsisode -> epsisode.getImdbRating() > 0)
                 .collect(Collectors.groupingBy(
@@ -174,5 +120,18 @@ public class Main {
         System.out.println("Best rated episode: " + episodesStatistics.getMax());
         System.out.println("Worst rated episode: " + episodesStatistics.getMin());
         System.out.println("Episodes rating average: " + episodesStatistics.getAverage());
+    }
+
+    private void printSeparator(String message, String separatorChar) {
+        int maxLineLength = 120;
+        if (message.length() > maxLineLength) {
+            System.out.println(message);
+            return;
+        }
+
+        StringBuilder separatorComplement = new StringBuilder();
+        separatorComplement.append(separatorChar.repeat((maxLineLength - message.length()) / 2)).append(" ");
+
+        System.out.println("\n" + separatorComplement + message + separatorComplement.reverse());
     }
 }
