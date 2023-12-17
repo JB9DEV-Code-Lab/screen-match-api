@@ -19,7 +19,9 @@ public class Serie {
     // endregion fields
 
     // region contructors
-    public Serie() {}
+    public Serie() {
+    }
+
     public Serie(SerieDTO serieDTO) {
         this.title = serieDTO.title();
         this.genre = serieDTO.genre();
@@ -30,7 +32,7 @@ public class Serie {
 
         try {
             this.totalSeasons = Integer.parseInt(serieDTO.totalSeasons());
-        } catch(NumberFormatException exception) {
+        } catch (NumberFormatException exception) {
             this.totalSeasons = 1;
         }
 
@@ -121,4 +123,17 @@ public class Serie {
         totalEpisodes = season.getEpisodeList().size();
     }
     // endregion public methods
+
+    // region overriddings
+    @Override
+    public String toString() {
+        return """
+        Title: %s
+        Genre: %s
+        Actors: %s
+        Synopsis: %s""".formatted(title, genre, actors, synopsis);
+    }
+
+    // endregion overriddings
+
 }

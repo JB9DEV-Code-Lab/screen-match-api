@@ -53,7 +53,8 @@ public class Main {
         } while(wantToWatchSomething);
 
         series.forEach(listedSerie -> {
-            printSeparator(listedSerie.getTitle().toUpperCase() + " DETAILS:", " ");
+            printSeparator(listedSerie.getTitle().toUpperCase() + " DETAILS:", "+");
+            System.out.println(listedSerie);
             listedSerie.getSeasonList().forEach(this::printEpisodesFromASeason);
         });
     }
