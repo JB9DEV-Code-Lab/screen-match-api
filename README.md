@@ -19,6 +19,5 @@ project, it's required:
 3. You're going to receive an email, to confirm that you own the email by clicking in a link. In this email there is
     also another link which has the apikey in the query params. That's you apikey, which is going to be available some
     minutes after the confirmation;
-4. Set this API Key in a system variable called `OMDB_API_KEY` and that's it, now you'll be able to run the application.
-
+4. Take a look at `application.properties` file to know which environment variables are required to be set, to then be able to run the application.
 **🚧 Document under construction 🚧**
