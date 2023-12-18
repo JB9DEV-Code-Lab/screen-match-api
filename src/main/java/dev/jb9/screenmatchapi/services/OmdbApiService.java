@@ -2,12 +2,20 @@ package dev.jb9.screenmatchapi.services;
 
 import dev.jb9.screenmatchapi.dtos.SeasonDTO;
 import dev.jb9.screenmatchapi.dtos.SerieDTO;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+@Service
 public class OmdbApiService extends RequestAPIService {
-    private final String BASE_URL = "https://www.omdbapi.com?apikey=" + System.getenv("OMDB_API_KEY");
+    @Value("${omdb.baseUrl}")
+    private String baseUrl;
+    @Value("${omdb.apiKey}")
+    private String apiKey;
+
+    private final String BASE_URL = "https://www.omdbapi.com";
     private final JsonSerializerService jsonSerializer = new JsonSerializerService();
 
     private String seriesName;
@@ -38,8 +46,11 @@ public class OmdbApiService extends RequestAPIService {
     // endregion public methods
 
     // region private methods
+    private String getEndpoint() {
+        return baseUrl + "?apikey=" + apiKey;
+    }
     private String getSeriesPath() {
-        return BASE_URL + "&t=" + URLEncoder.encode(seriesName, StandardCharsets.UTF_8);
+        return getEndpoint() + "&t=" + URLEncoder.encode(seriesName, StandardCharsets.UTF_8);
     }
 
     private String getSeasonPath() {

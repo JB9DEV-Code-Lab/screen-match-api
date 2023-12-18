@@ -1,20 +1,23 @@
 package dev.jb9.screenmatchapi;
 
 import dev.jb9.screenmatchapi.main.Main;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+@ComponentScan(basePackages = "dev.jb9.screenmatchapi")
 public class ScreenMatchApiApplication implements CommandLineRunner {
-
+    @Autowired
+    private Main mainApplicationComponent;
     public static void main(String[] args) {
         SpringApplication.run(ScreenMatchApiApplication.class, args);
     }
 
     @Override
     public void run(String... args) throws Exception {
-        Main mainApplicationClass = new Main();
-        mainApplicationClass.execute();
+        mainApplicationComponent.execute();
     }
 }

@@ -7,6 +7,8 @@ import dev.jb9.screenmatchapi.models.Season;
 import dev.jb9.screenmatchapi.models.Serie;
 import dev.jb9.screenmatchapi.services.OmdbApiService;
 import dev.jb9.screenmatchapi.utils.Reader;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -15,8 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Component
 public class Main {
-    private final OmdbApiService OMDB_API_SERVICE = new OmdbApiService();
+    @Autowired
+    private OmdbApiService omdbApiService;
     private final Reader READER = new Reader();
     private final List<Serie> series = new ArrayList<>();
     private Serie serie;
@@ -26,8 +30,8 @@ public class Main {
         boolean wantToWatchSomething;
         do {
             String seriesName = READER.ask("What series do you want to watch?");
-            OMDB_API_SERVICE.setSeriesName(seriesName);
-            SerieDTO serieDTO = OMDB_API_SERVICE.fetchSeries();
+            omdbApiService.setSeriesName(seriesName);
+            SerieDTO serieDTO = omdbApiService.fetchSeries();
             serie = new Serie(serieDTO);
             series.add(serie);
 
@@ -78,8 +82,8 @@ public class Main {
     }
 
     private SeasonDTO fetchSeason(int seasonNumber) {
-        OMDB_API_SERVICE.setSeasonNumber(seasonNumber);
-        return OMDB_API_SERVICE.fetchSeason();
+        omdbApiService.setSeasonNumber(seasonNumber);
+        return omdbApiService.fetchSeason();
     }
 
     private void printEpisodesFromASeason(Season season) {
